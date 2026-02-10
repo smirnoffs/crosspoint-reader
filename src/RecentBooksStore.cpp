@@ -121,15 +121,20 @@ bool RecentBooksStore::loadFromFile() {
       recentBooks.reserve(count);
       for (uint8_t i = 0; i < count; i++) {
         std::string path;
-        serialization::readString(inputFile, path);
+        if (!serialization::readString(inputFile, path)) {
+          Serial.printf("[%lu] [RBS] Corrupt recent book path at index %d, stopping\n", millis(), i);
+          break;
+        }
 
         // load book to get missing data
         RecentBook book = getDataFromBook(path);
         if (book.title.empty() && book.author.empty() && version == 2) {
           // Fall back to loading what we can from the store
           std::string title, author;
-          serialization::readString(inputFile, title);
-          serialization::readString(inputFile, author);
+          if (!serialization::readString(inputFile, title) || !serialization::readString(inputFile, author)) {
+            recentBooks.push_back({path, "", "", ""});
+            break;
+          }
           recentBooks.push_back({path, title, author, ""});
         } else {
           recentBooks.push_back(book);
@@ -149,10 +154,11 @@ bool RecentBooksStore::loadFromFile() {
 
     for (uint8_t i = 0; i < count; i++) {
       std::string path, title, author, coverBmpPath;
-      serialization::readString(inputFile, path);
-      serialization::readString(inputFile, title);
-      serialization::readString(inputFile, author);
-      serialization::readString(inputFile, coverBmpPath);
+      if (!serialization::readString(inputFile, path) || !serialization::readString(inputFile, title) ||
+          !serialization::readString(inputFile, author) || !serialization::readString(inputFile, coverBmpPath)) {
+        Serial.printf("[%lu] [RBS] Corrupt recent book data at index %d, stopping\n", millis(), i);
+        break;
+      }
       recentBooks.push_back({path, title, author, coverBmpPath});
     }
   }

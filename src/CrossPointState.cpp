@@ -40,7 +40,11 @@ bool CrossPointState::loadFromFile() {
     return false;
   }
 
-  serialization::readString(inputFile, openEpubPath);
+  if (!serialization::readString(inputFile, openEpubPath)) {
+    Serial.printf("[%lu] [CPS] Deserialization failed: corrupt openEpubPath\n", millis());
+    inputFile.close();
+    return false;
+  }
   if (version >= 2) {
     serialization::readPod(inputFile, lastSleepImage);
   } else {

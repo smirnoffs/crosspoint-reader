@@ -36,17 +36,31 @@ static void writeString(FsFile& file, const std::string& s) {
   file.write(reinterpret_cast<const uint8_t*>(s.data()), len);
 }
 
-static void readString(std::istream& is, std::string& s) {
+// Max string length to prevent heap corruption from corrupted/incompatible files.
+// ESP32-C3 has ~380KB heap; 64KB is a safe upper bound for any serialized string.
+constexpr uint32_t MAX_SERIALIZED_STRING_LENGTH = 65536;
+
+static bool readString(std::istream& is, std::string& s) {
   uint32_t len;
   readPod(is, len);
+  if (len > MAX_SERIALIZED_STRING_LENGTH) {
+    s.clear();
+    return false;
+  }
   s.resize(len);
   is.read(&s[0], len);
+  return true;
 }
 
-static void readString(FsFile& file, std::string& s) {
+static bool readString(FsFile& file, std::string& s) {
   uint32_t len;
   readPod(file, len);
+  if (len > MAX_SERIALIZED_STRING_LENGTH) {
+    s.clear();
+    return false;
+  }
   s.resize(len);
   file.read(&s[0], len);
+  return true;
 }
 }  // namespace serialization

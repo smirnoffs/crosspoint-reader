@@ -9,3 +9,6 @@ build
 **/__pycache__/
 /compile_commands.json
 /.cache
+
+# ralphex progress logs
+progress*.txt

@@ -380,11 +380,15 @@ bool BookMetadataCache::load() {
   serialization::readPod(bookFile, spineCount);
   serialization::readPod(bookFile, tocCount);
 
-  serialization::readString(bookFile, coreMetadata.title);
-  serialization::readString(bookFile, coreMetadata.author);
-  serialization::readString(bookFile, coreMetadata.language);
-  serialization::readString(bookFile, coreMetadata.coverItemHref);
-  serialization::readString(bookFile, coreMetadata.textReferenceHref);
+  if (!serialization::readString(bookFile, coreMetadata.title) ||
+      !serialization::readString(bookFile, coreMetadata.author) ||
+      !serialization::readString(bookFile, coreMetadata.language) ||
+      !serialization::readString(bookFile, coreMetadata.coverItemHref) ||
+      !serialization::readString(bookFile, coreMetadata.textReferenceHref)) {
+    Serial.printf("[%lu] [BMC] Cache data corrupt: invalid string in metadata\n", millis());
+    bookFile.close();
+    return false;
+  }
 
   loaded = true;
   Serial.printf("[%lu] [BMC] Loaded cache data: %d spine, %d TOC entries\n", millis(), spineCount, tocCount);
