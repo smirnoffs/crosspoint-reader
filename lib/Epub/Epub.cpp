@@ -6,6 +6,8 @@
 #include <JpegToBmpConverter.h>
 #include <ZipFile.h>
 
+#include <new>
+
 #include "Epub/parsers/ContainerParser.h"
 #include "Epub/parsers/ContentOpfParser.h"
 #include "Epub/parsers/TocNavParser.h"
@@ -256,7 +258,11 @@ void Epub::parseCssFiles() const {
         Storage.remove(tmpCssPath.c_str());
         continue;
       }
-      cssParser->loadFromStream(tempCssFile);
+      try {
+        cssParser->loadFromStream(tempCssFile);
+      } catch (const std::bad_alloc&) {
+        Serial.printf("[%lu] [EBP] CSS parsing failed: out of memory, skipping CSS\n", millis());
+      }
       tempCssFile.close();
       Storage.remove(tmpCssPath.c_str());
     }

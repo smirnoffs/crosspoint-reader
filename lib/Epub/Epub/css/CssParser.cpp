@@ -10,16 +10,18 @@ namespace {
 // Buffer size for reading CSS files
 constexpr size_t READ_BUFFER_SIZE = 512;
 
-// Maximum CSS file size we'll process (prevent memory issues)
-constexpr size_t MAX_CSS_SIZE = 64 * 1024;
+// Maximum CSS file size we'll process (prevent memory issues on ESP32)
+// 32KB is sufficient for e-ink reader styling; larger files cause heap exhaustion
+constexpr size_t MAX_CSS_SIZE = 32 * 1024;
 
 // Check if character is CSS whitespace
 bool isCssWhitespace(const char c) { return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f'; }
 
 // Read entire file into string (with size limit)
 std::string readFileContent(FsFile& file) {
+  const size_t fileSize = file.size();
   std::string content;
-  content.reserve(std::min(static_cast<size_t>(file.size()), MAX_CSS_SIZE));
+  content.reserve(std::min(fileSize, MAX_CSS_SIZE));
 
   char buffer[READ_BUFFER_SIZE];
   while (file.available() && content.size() < MAX_CSS_SIZE) {
@@ -27,31 +29,31 @@ std::string readFileContent(FsFile& file) {
     if (bytesRead <= 0) break;
     content.append(buffer, bytesRead);
   }
+  if (fileSize > MAX_CSS_SIZE) {
+    Serial.printf("[%lu] [CSS] CSS file truncated from %zu to %zu bytes\n", millis(), fileSize, MAX_CSS_SIZE);
+  }
   return content;
 }
 
-// Remove CSS comments (/* ... */) from content
-std::string stripComments(const std::string& css) {
-  std::string result;
-  result.reserve(css.size());
+// Remove CSS comments (/* ... */) in-place to avoid duplicate memory allocation
+void stripCommentsInPlace(std::string& css) {
+  size_t writePos = 0;
+  size_t readPos = 0;
 
-  size_t pos = 0;
-  while (pos < css.size()) {
-    // Look for start of comment
-    if (pos + 1 < css.size() && css[pos] == '/' && css[pos + 1] == '*') {
-      // Find end of comment
-      const size_t endPos = css.find("*/", pos + 2);
+  while (readPos < css.size()) {
+    if (readPos + 1 < css.size() && css[readPos] == '/' && css[readPos + 1] == '*') {
+      const size_t endPos = css.find("*/", readPos + 2);
       if (endPos == std::string::npos) {
-        // Unterminated comment - skip rest of file
         break;
       }
-      pos = endPos + 2;
+      readPos = endPos + 2;
     } else {
-      result.push_back(css[pos]);
-      ++pos;
+      css[writePos] = css[readPos];
+      ++writePos;
+      ++readPos;
     }
   }
-  return result;
+  css.resize(writePos);
 }
 
 // Skip @-rules (like @media, @import, @font-face)
@@ -454,19 +456,19 @@ bool CssParser::loadFromStream(FsFile& source) {
   }
 
   // Read file content
-  const std::string content = readFileContent(source);
+  std::string content = readFileContent(source);
   if (content.empty()) {
     return true;  // Empty file is valid
   }
 
-  // Remove comments
-  const std::string cleaned = stripComments(content);
+  // Remove comments in-place to avoid allocating a second copy
+  stripCommentsInPlace(content);
 
   // Parse rules
   size_t pos = 0;
   std::string selector, body;
 
-  while (extractNextRule(cleaned, pos, selector, body)) {
+  while (extractNextRule(content, pos, selector, body)) {
     processRuleBlock(selector, body);
   }
 
