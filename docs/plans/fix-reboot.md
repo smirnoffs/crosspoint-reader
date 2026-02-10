@@ -29,6 +29,6 @@ Build: `pio run -e default`
 
 ### Task 2: Build, flash, and verify the fix on device
 
-- [ ] Build the firmware with `pio run -e default`
-- [ ] Flash the firmware to the connected device
-- [ ] Monitor device logs to confirm the reboot loop is resolved and the book loads successfully
+- [x] Build the firmware with `pio run -e default`
+- [x] Flash the firmware to the connected device
+- [x] Monitor device logs to confirm the reboot loop is resolved and the book loads successfully
