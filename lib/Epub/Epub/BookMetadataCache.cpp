@@ -469,7 +469,9 @@ BookMetadataCache::TocEntry BookMetadataCache::getTocEntry(const int index) {
 
 BookMetadataCache::SpineEntry BookMetadataCache::readSpineEntry(FsFile& file) const {
   SpineEntry entry;
-  serialization::readString(file, entry.href);
+  if (!serialization::readString(file, entry.href)) {
+    return {};
+  }
   serialization::readPod(file, entry.cumulativeSize);
   serialization::readPod(file, entry.tocIndex);
   return entry;
@@ -477,9 +479,11 @@ BookMetadataCache::SpineEntry BookMetadataCache::readSpineEntry(FsFile& file) co
 
 BookMetadataCache::TocEntry BookMetadataCache::readTocEntry(FsFile& file) const {
   TocEntry entry;
-  serialization::readString(file, entry.title);
-  serialization::readString(file, entry.href);
-  serialization::readString(file, entry.anchor);
+  if (!serialization::readString(file, entry.title) ||
+      !serialization::readString(file, entry.href) ||
+      !serialization::readString(file, entry.anchor)) {
+    return {};
+  }
   serialization::readPod(file, entry.level);
   serialization::readPod(file, entry.spineIndex);
   return entry;

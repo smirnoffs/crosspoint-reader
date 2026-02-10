@@ -55,3 +55,15 @@ This document show most common issues and possible solutions while using the dev
 2. Select **Yes** to remove the saved password
 3. Reconnect and enter the password again
 4. Choose to save the new password
+
+### Device Reboots After Firmware Upgrade
+
+**Problem:** Device enters a reboot loop after upgrading from an older firmware version (e.g., Papyrix or CrossPoint v0.16 to v1.0.0).
+
+**Cause:** Incompatible or corrupted cache files from the previous firmware version can cause crashes during boot.
+
+**Solutions:**
+
+1. Firmware v1.0.0+ automatically detects upgrades and clears incompatible caches. Ensure you are running the latest firmware.
+2. If the issue persists, manually delete the `.crosspoint` directory on the SD card, or selectively delete the `epub_*` and `xtc_*` subdirectories within `.crosspoint/`.
+3. As a last resort, use the bootloop escape method: press and release the Reset button, then press and hold the Back button and the Power button to boot to the Home Screen.

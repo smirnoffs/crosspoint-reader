@@ -131,6 +131,7 @@ cache. This cache directory exists at `.crosspoint` on the SD card. The structur
 
 ```
 .crosspoint/
+├── version.txt          # Tracks firmware version for cache compatibility
 ├── epub_12471232/       # Each EPUB is cached to a subdirectory named `epub_<hash>`
 │   ├── progress.bin     # Stores reading progress (chapter, page, etc.)
 │   ├── cover.bmp        # Book cover image (once generated)
@@ -143,7 +144,11 @@ cache. This cache directory exists at `.crosspoint` on the SD card. The structur
 └── epub_189013891/
 ```
 
-Deleting the `.crosspoint` directory will clear the entire cache. 
+When the firmware detects a version upgrade (by comparing the current version against `version.txt`), it automatically
+deletes all `epub_*` and `xtc_*` cache directories to prevent incompatibilities. The `version.txt` file is then updated
+to the current version.
+
+Deleting the `.crosspoint` directory will clear the entire cache.
 
 Due the way it's currently implemented, the cache is not automatically cleared when a book is deleted and moving a book
 file will use a new cache directory, resetting the reading progress.

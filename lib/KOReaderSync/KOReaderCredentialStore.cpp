@@ -80,14 +80,20 @@ bool KOReaderCredentialStore::loadFromFile() {
 
   // Read username
   if (file.available()) {
-    serialization::readString(file, username);
+    if (!serialization::readString(file, username)) {
+      file.close();
+      return false;
+    }
   } else {
     username.clear();
   }
 
   // Read and deobfuscate password
   if (file.available()) {
-    serialization::readString(file, password);
+    if (!serialization::readString(file, password)) {
+      file.close();
+      return false;
+    }
     obfuscate(password);  // XOR is symmetric, so same function deobfuscates
   } else {
     password.clear();
@@ -95,7 +101,10 @@ bool KOReaderCredentialStore::loadFromFile() {
 
   // Read server URL
   if (file.available()) {
-    serialization::readString(file, serverUrl);
+    if (!serialization::readString(file, serverUrl)) {
+      file.close();
+      return false;
+    }
   } else {
     serverUrl.clear();
   }

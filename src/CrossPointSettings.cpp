@@ -179,7 +179,7 @@ bool CrossPointSettings::loadFromFile() {
     if (++settingsRead >= fileSettingsCount) break;
     {
       std::string urlStr;
-      serialization::readString(inputFile, urlStr);
+      if (!serialization::readString(inputFile, urlStr)) break;
       strncpy(opdsServerUrl, urlStr.c_str(), sizeof(opdsServerUrl) - 1);
       opdsServerUrl[sizeof(opdsServerUrl) - 1] = '\0';
     }
@@ -194,14 +194,14 @@ bool CrossPointSettings::loadFromFile() {
     if (++settingsRead >= fileSettingsCount) break;
     {
       std::string usernameStr;
-      serialization::readString(inputFile, usernameStr);
+      if (!serialization::readString(inputFile, usernameStr)) break;
       strncpy(opdsUsername, usernameStr.c_str(), sizeof(opdsUsername) - 1);
       opdsUsername[sizeof(opdsUsername) - 1] = '\0';
     }
     if (++settingsRead >= fileSettingsCount) break;
     {
       std::string passwordStr;
-      serialization::readString(inputFile, passwordStr);
+      if (!serialization::readString(inputFile, passwordStr)) break;
       strncpy(opdsPassword, passwordStr.c_str(), sizeof(opdsPassword) - 1);
       opdsPassword[sizeof(opdsPassword) - 1] = '\0';
     }

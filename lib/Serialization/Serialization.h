@@ -49,6 +49,10 @@ static bool readString(std::istream& is, std::string& s) {
   }
   s.resize(len);
   is.read(&s[0], len);
+  if (is.gcount() != static_cast<std::streamsize>(len)) {
+    s.clear();
+    return false;
+  }
   return true;
 }
 
@@ -60,7 +64,11 @@ static bool readString(FsFile& file, std::string& s) {
     return false;
   }
   s.resize(len);
-  file.read(&s[0], len);
+  const int bytesRead = file.read(reinterpret_cast<uint8_t*>(&s[0]), len);
+  if (bytesRead < 0 || static_cast<uint32_t>(bytesRead) != len) {
+    s.clear();
+    return false;
+  }
   return true;
 }
 }  // namespace serialization

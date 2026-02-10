@@ -268,9 +268,9 @@ void XMLCALL ContentOpfParser::startElement(void* userData, const XML_Char* name
             while (it != self->itemIndex.end() && it->idHash == targetHash) {
               self->tempItemStore.seek(it->fileOffset);
               std::string itemId;
-              serialization::readString(self->tempItemStore, itemId);
+              if (!serialization::readString(self->tempItemStore, itemId)) break;
               if (itemId == idref) {
-                serialization::readString(self->tempItemStore, href);
+                if (!serialization::readString(self->tempItemStore, href)) break;
                 found = true;
                 break;
               }
@@ -283,8 +283,8 @@ void XMLCALL ContentOpfParser::startElement(void* userData, const XML_Char* name
             self->tempItemStore.seek(0);
             std::string itemId;
             while (self->tempItemStore.available()) {
-              serialization::readString(self->tempItemStore, itemId);
-              serialization::readString(self->tempItemStore, href);
+              if (!serialization::readString(self->tempItemStore, itemId)) break;
+              if (!serialization::readString(self->tempItemStore, href)) break;
               if (itemId == idref) {
                 found = true;
                 break;

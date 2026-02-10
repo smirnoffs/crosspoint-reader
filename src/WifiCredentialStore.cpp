@@ -75,7 +75,10 @@ bool WifiCredentialStore::loadFromFile() {
   }
 
   if (version >= 2) {
-    serialization::readString(file, lastConnectedSsid);
+    if (!serialization::readString(file, lastConnectedSsid)) {
+      file.close();
+      return false;
+    }
   } else {
     lastConnectedSsid.clear();
   }
@@ -90,10 +93,10 @@ bool WifiCredentialStore::loadFromFile() {
     WifiCredential cred;
 
     // Read SSID
-    serialization::readString(file, cred.ssid);
+    if (!serialization::readString(file, cred.ssid)) break;
 
     // Read and deobfuscate password
-    serialization::readString(file, cred.password);
+    if (!serialization::readString(file, cred.password)) break;
     Serial.printf("[%lu] [WCS] Loaded SSID: %s, obfuscated password length: %zu\n", millis(), cred.ssid.c_str(),
                   cred.password.size());
     obfuscate(cred.password);  // XOR is symmetric, so same function deobfuscates

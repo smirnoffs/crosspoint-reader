@@ -311,6 +311,13 @@ void setup() {
     if (savedVersion != CROSSPOINT_VERSION) {
       Serial.printf("[%lu] [   ] Firmware upgrade detected (%s -> %s), clearing epub caches\n", millis(),
                     savedVersion.length() ? savedVersion.c_str() : "none", CROSSPOINT_VERSION);
+
+      // Collect cache directory paths first, then remove them after closing the directory
+      // iterator. Removing directories while iterating can cause skipped entries on FAT/exFAT.
+      constexpr int MAX_CACHE_DIRS = 64;
+      String cacheDirs[MAX_CACHE_DIRS];
+      int cacheDirCount = 0;
+
       auto root = Storage.open("/.crosspoint");
       if (root && root.isDirectory()) {
         char name[128];
@@ -318,19 +325,23 @@ void setup() {
           file.getName(name, sizeof(name));
           String itemName(name);
           if (file.isDirectory() && (itemName.startsWith("epub_") || itemName.startsWith("xtc_"))) {
-            String fullPath = "/.crosspoint/" + itemName;
-            file.close();
-            if (Storage.removeDir(fullPath.c_str())) {
-              Serial.printf("[%lu] [   ] Cleared cache: %s\n", millis(), fullPath.c_str());
-            } else {
-              Serial.printf("[%lu] [   ] Failed to clear cache: %s\n", millis(), fullPath.c_str());
+            if (cacheDirCount < MAX_CACHE_DIRS) {
+              cacheDirs[cacheDirCount++] = "/.crosspoint/" + itemName;
             }
-          } else {
-            file.close();
           }
+          file.close();
         }
         root.close();
       }
+
+      for (int i = 0; i < cacheDirCount; i++) {
+        if (Storage.removeDir(cacheDirs[i].c_str())) {
+          Serial.printf("[%lu] [   ] Cleared cache: %s\n", millis(), cacheDirs[i].c_str());
+        } else {
+          Serial.printf("[%lu] [   ] Failed to clear cache: %s\n", millis(), cacheDirs[i].c_str());
+        }
+      }
+
       Storage.writeFile(VERSION_FILE, CROSSPOINT_VERSION);
     }
   }
