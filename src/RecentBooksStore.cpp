@@ -88,7 +88,10 @@ RecentBook RecentBooksStore::getDataFromBook(std::string path) const {
   // If epub, try to load the metadata for title/author and cover
   if (StringUtils::checkFileExtension(lastBookFileName, ".epub")) {
     Epub epub(path, "/.crosspoint");
-    epub.load(false);
+    if (!epub.load(false)) {
+      Serial.printf("[%lu] [RBS] Failed to load epub metadata for: %s\n", millis(), path.c_str());
+      return RecentBook{path, "", "", ""};
+    }
     return RecentBook{path, epub.getTitle(), epub.getAuthor(), epub.getThumbBmpPath()};
   } else if (StringUtils::checkFileExtension(lastBookFileName, ".xtch") ||
              StringUtils::checkFileExtension(lastBookFileName, ".xtc")) {

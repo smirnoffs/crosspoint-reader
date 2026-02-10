@@ -37,7 +37,7 @@ Lint: `pio check -e default`
 
 ### Task 3: Make RecentBooksStore migration crash-safe
 
-- [ ] In `RecentBooksStore::loadFromFile()`, wrap the `getDataFromBook()` call in the v1/v2 migration path so that if epub loading fails, we still add the book with just its path (graceful degradation instead of crash).
+- [x] In `RecentBooksStore::loadFromFile()`, wrap the `getDataFromBook()` call in the v1/v2 migration path so that if epub loading fails, we still add the book with just its path (graceful degradation instead of crash).
 
 ### Task 4: Clear incompatible caches on version upgrade
 
