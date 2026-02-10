@@ -32,8 +32,8 @@ Lint: `pio check -e default`
 
 ### Task 2: Make BookMetadataCache::load() resilient to corrupted data
 
-- [ ] Add validation of `lutOffset`, `spineCount`, and `tocCount` after reading them in `BookMetadataCache::load()`. Validate that lutOffset is within file bounds and counts are reasonable.
-- [ ] Add validation in `getSpineEntry()` and `getTocEntry()` to check that the LUT position read is within file bounds before seeking.
+- [x] Add validation of `lutOffset`, `spineCount`, and `tocCount` after reading them in `BookMetadataCache::load()`. Validate that lutOffset is within file bounds and counts are reasonable.
+- [x] Add validation in `getSpineEntry()` and `getTocEntry()` to check that the LUT position read is within file bounds before seeking.
 
 ### Task 3: Make RecentBooksStore migration crash-safe
 

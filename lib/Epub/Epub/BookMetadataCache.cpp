@@ -380,6 +380,24 @@ bool BookMetadataCache::load() {
   serialization::readPod(bookFile, spineCount);
   serialization::readPod(bookFile, tocCount);
 
+  const uint32_t fileSize = bookFile.size();
+
+  // Validate lutOffset is within file bounds
+  if (lutOffset >= fileSize) {
+    Serial.printf("[%lu] [BMC] Cache data corrupt: lutOffset %u >= fileSize %u\n", millis(), lutOffset, fileSize);
+    bookFile.close();
+    return false;
+  }
+
+  // Validate that the LUT (spineCount + tocCount uint32_t entries) fits within the file
+  const uint32_t lutSize = (static_cast<uint32_t>(spineCount) + static_cast<uint32_t>(tocCount)) * sizeof(uint32_t);
+  if (lutOffset + lutSize > fileSize) {
+    Serial.printf("[%lu] [BMC] Cache data corrupt: LUT extends beyond file (offset=%u, lutSize=%u, fileSize=%u)\n",
+                  millis(), lutOffset, lutSize, fileSize);
+    bookFile.close();
+    return false;
+  }
+
   if (!serialization::readString(bookFile, coreMetadata.title) ||
       !serialization::readString(bookFile, coreMetadata.author) ||
       !serialization::readString(bookFile, coreMetadata.language) ||
@@ -410,6 +428,14 @@ BookMetadataCache::SpineEntry BookMetadataCache::getSpineEntry(const int index) 
   bookFile.seek(lutOffset + sizeof(uint32_t) * index);
   uint32_t spineEntryPos;
   serialization::readPod(bookFile, spineEntryPos);
+
+  const uint32_t fileSize = bookFile.size();
+  if (spineEntryPos >= fileSize) {
+    Serial.printf("[%lu] [BMC] getSpineEntry: LUT position %u out of file bounds (%u)\n", millis(), spineEntryPos,
+                  fileSize);
+    return {};
+  }
+
   bookFile.seek(spineEntryPos);
   return readSpineEntry(bookFile);
 }
@@ -429,6 +455,14 @@ BookMetadataCache::TocEntry BookMetadataCache::getTocEntry(const int index) {
   bookFile.seek(lutOffset + sizeof(uint32_t) * spineCount + sizeof(uint32_t) * index);
   uint32_t tocEntryPos;
   serialization::readPod(bookFile, tocEntryPos);
+
+  const uint32_t fileSize = bookFile.size();
+  if (tocEntryPos >= fileSize) {
+    Serial.printf("[%lu] [BMC] getTocEntry: LUT position %u out of file bounds (%u)\n", millis(), tocEntryPos,
+                  fileSize);
+    return {};
+  }
+
   bookFile.seek(tocEntryPos);
   return readTocEntry(bookFile);
 }
