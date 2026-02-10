@@ -327,6 +327,8 @@ void setup() {
           if (file.isDirectory() && (itemName.startsWith("epub_") || itemName.startsWith("xtc_"))) {
             if (cacheDirCount < MAX_CACHE_DIRS) {
               cacheDirs[cacheDirCount++] = "/.crosspoint/" + itemName;
+            } else {
+              Serial.printf("[%lu] [   ] Too many cache dirs, skipping: %s\n", millis(), name);
             }
           }
           file.close();

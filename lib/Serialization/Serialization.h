@@ -41,7 +41,7 @@ static void writeString(FsFile& file, const std::string& s) {
 constexpr uint32_t MAX_SERIALIZED_STRING_LENGTH = 65536;
 
 static bool readString(std::istream& is, std::string& s) {
-  uint32_t len;
+  uint32_t len = UINT32_MAX;
   readPod(is, len);
   if (len > MAX_SERIALIZED_STRING_LENGTH) {
     s.clear();
@@ -61,7 +61,7 @@ static bool readString(std::istream& is, std::string& s) {
 }
 
 static bool readString(FsFile& file, std::string& s) {
-  uint32_t len;
+  uint32_t len = UINT32_MAX;
   readPod(file, len);
   if (len > MAX_SERIALIZED_STRING_LENGTH) {
     s.clear();
