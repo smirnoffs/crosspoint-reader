@@ -41,4 +41,4 @@ Lint: `pio check -e default`
 
 ### Task 4: Clear incompatible caches on version upgrade
 
-- [ ] In `main.cpp` boot sequence, after loading state, detect if this is a fresh boot after upgrade (e.g. state file version was old or missing) and delete epub cache directories to force a clean rebuild.
+- [x] In `main.cpp` boot sequence, after loading state, detect if this is a fresh boot after upgrade (e.g. state file version was old or missing) and delete epub cache directories to force a clean rebuild.

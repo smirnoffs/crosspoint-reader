@@ -302,6 +302,39 @@ void setup() {
     return;
   }
 
+  // Detect firmware upgrade and clear incompatible epub caches
+  {
+    constexpr char VERSION_FILE[] = "/.crosspoint/version.txt";
+    Storage.mkdir("/.crosspoint");
+    String savedVersion = Storage.readFile(VERSION_FILE);
+    savedVersion.trim();
+    if (savedVersion != CROSSPOINT_VERSION) {
+      Serial.printf("[%lu] [   ] Firmware upgrade detected (%s -> %s), clearing epub caches\n", millis(),
+                    savedVersion.length() ? savedVersion.c_str() : "none", CROSSPOINT_VERSION);
+      auto root = Storage.open("/.crosspoint");
+      if (root && root.isDirectory()) {
+        char name[128];
+        for (auto file = root.openNextFile(); file; file = root.openNextFile()) {
+          file.getName(name, sizeof(name));
+          String itemName(name);
+          if (file.isDirectory() && (itemName.startsWith("epub_") || itemName.startsWith("xtc_"))) {
+            String fullPath = "/.crosspoint/" + itemName;
+            file.close();
+            if (Storage.removeDir(fullPath.c_str())) {
+              Serial.printf("[%lu] [   ] Cleared cache: %s\n", millis(), fullPath.c_str());
+            } else {
+              Serial.printf("[%lu] [   ] Failed to clear cache: %s\n", millis(), fullPath.c_str());
+            }
+          } else {
+            file.close();
+          }
+        }
+        root.close();
+      }
+      Storage.writeFile(VERSION_FILE, CROSSPOINT_VERSION);
+    }
+  }
+
   SETTINGS.loadFromFile();
   KOREADER_STORE.loadFromFile();
   UITheme::getInstance().reload();
