@@ -47,6 +47,10 @@ static bool readString(std::istream& is, std::string& s) {
     s.clear();
     return false;
   }
+  if (len == 0) {
+    s.clear();
+    return true;
+  }
   s.resize(len);
   is.read(&s[0], len);
   if (is.gcount() != static_cast<std::streamsize>(len)) {
@@ -62,6 +66,10 @@ static bool readString(FsFile& file, std::string& s) {
   if (len > MAX_SERIALIZED_STRING_LENGTH) {
     s.clear();
     return false;
+  }
+  if (len == 0) {
+    s.clear();
+    return true;
   }
   s.resize(len);
   const int bytesRead = file.read(reinterpret_cast<uint8_t*>(&s[0]), len);

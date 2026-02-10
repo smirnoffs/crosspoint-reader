@@ -131,14 +131,19 @@ bool RecentBooksStore::loadFromFile() {
 
         // load book to get missing data
         RecentBook book = getDataFromBook(path);
-        if (book.title.empty() && book.author.empty() && version == 2) {
-          // Fall back to loading what we can from the store
+        if (version == 2) {
+          // v2 format always has title + author after path; consume them to keep stream in sync
           std::string title, author;
           if (!serialization::readString(inputFile, title) || !serialization::readString(inputFile, author)) {
-            recentBooks.push_back({path, "", "", ""});
+            recentBooks.push_back({path, book.title, book.author, book.coverBmpPath});
             break;
           }
-          recentBooks.push_back({path, title, author, ""});
+          // Use file data as fallback if epub metadata was unavailable
+          if (book.title.empty() && book.author.empty()) {
+            recentBooks.push_back({path, title, author, ""});
+          } else {
+            recentBooks.push_back(book);
+          }
         } else {
           recentBooks.push_back(book);
         }

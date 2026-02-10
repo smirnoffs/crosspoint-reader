@@ -390,8 +390,9 @@ bool BookMetadataCache::load() {
   }
 
   // Validate that the LUT (spineCount + tocCount uint32_t entries) fits within the file
+  // Use subtraction-based comparison to avoid uint32_t overflow
   const uint32_t lutSize = (static_cast<uint32_t>(spineCount) + static_cast<uint32_t>(tocCount)) * sizeof(uint32_t);
-  if (lutOffset + lutSize > fileSize) {
+  if (lutSize > fileSize || lutOffset > fileSize - lutSize) {
     Serial.printf("[%lu] [BMC] Cache data corrupt: LUT extends beyond file (offset=%u, lutSize=%u, fileSize=%u)\n",
                   millis(), lutOffset, lutSize, fileSize);
     bookFile.close();
