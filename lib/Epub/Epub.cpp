@@ -262,6 +262,7 @@ void Epub::parseCssFiles() const {
         cssParser->loadFromStream(tempCssFile);
       } catch (const std::bad_alloc&) {
         Serial.printf("[%lu] [EBP] CSS parsing failed: out of memory, skipping CSS\n", millis());
+        cssParser->clear();
       }
       tempCssFile.close();
       Storage.remove(tmpCssPath.c_str());

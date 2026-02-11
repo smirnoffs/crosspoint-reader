@@ -25,7 +25,9 @@ std::string readFileContent(FsFile& file) {
 
   char buffer[READ_BUFFER_SIZE];
   while (file.available() && content.size() < MAX_CSS_SIZE) {
-    const int bytesRead = file.read(buffer, sizeof(buffer));
+    const size_t remaining = MAX_CSS_SIZE - content.size();
+    const size_t toRead = std::min(sizeof(buffer), remaining);
+    const int bytesRead = file.read(buffer, toRead);
     if (bytesRead <= 0) break;
     content.append(buffer, bytesRead);
   }
